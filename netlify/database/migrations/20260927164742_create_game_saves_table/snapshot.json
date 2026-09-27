@@ -1,0 +1,79 @@
+{
+  "version": "8",
+  "dialect": "postgres",
+  "id": "fdf7dee0-5d6b-46a8-b504-1913ebcf54f2",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
+  "ddl": [
+    {
+      "isRlsEnabled": false,
+      "name": "game_saves",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "game_saves"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "pseudonym",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "game_saves"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "state",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "game_saves"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "game_saves"
+    },
+    {
+      "columns": [
+        "user_id"
+      ],
+      "nameExplicit": false,
+      "name": "game_saves_pkey",
+      "schema": "public",
+      "table": "game_saves",
+      "entityType": "pks"
+    }
+  ],
+  "renames": []
+}

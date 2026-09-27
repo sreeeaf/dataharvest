@@ -6,6 +6,8 @@ import {
   FRAGMENT_BONUS_PER_UNIT,
   GENERATORS,
   GLOBAL_UPGRADES,
+  PRODUCTION_BREAKPOINT_INTERVAL,
+  PRODUCTION_BREAKPOINT_MULTIPLIER,
   QUESTS,
   REBIRTH_MIN_TOTAL,
 } from './gameConfig'
@@ -96,12 +98,47 @@ export function clickUpgradeCost(level: number): number {
   )
 }
 
+export function generatorBreakpointMultiplier(owned: number): number {
+  return Math.pow(
+    PRODUCTION_BREAKPOINT_MULTIPLIER,
+    Math.floor(owned / PRODUCTION_BREAKPOINT_INTERVAL),
+  )
+}
+
+export function questProductionMultiplier(state: GameState): number {
+  let bonus = 0
+  for (const id of state.completedQuests) {
+    const q = QUESTS.find((x) => x.id === id)
+    if (q?.reward.permanentBonus?.production) {
+      bonus += q.reward.permanentBonus.production
+    }
+  }
+  return 1 + bonus
+}
+
+export function questClickMultiplier(state: GameState): number {
+  let bonus = 0
+  for (const id of state.completedQuests) {
+    const q = QUESTS.find((x) => x.id === id)
+    if (q?.reward.permanentBonus?.click) {
+      bonus += q.reward.permanentBonus.click
+    }
+  }
+  return 1 + bonus
+}
+
 export function computeProductionPerSecond(state: GameState): number {
   let base = 0
   for (const g of GENERATORS) {
-    base += (state.generators[g.id] ?? 0) * g.baseProduction
+    const owned = state.generators[g.id] ?? 0
+    base += owned * g.baseProduction * generatorBreakpointMultiplier(owned)
   }
-  return base * globalUpgradeMultiplier(state) * prestigeMultiplier(state)
+  return (
+    base *
+    globalUpgradeMultiplier(state) *
+    prestigeMultiplier(state) *
+    questProductionMultiplier(state)
+  )
 }
 
 export function computeClickValue(state: GameState): number {
@@ -109,7 +146,8 @@ export function computeClickValue(state: GameState): number {
     BASE_CLICK_VALUE *
     clickUpgradeMultiplier(state) *
     globalUpgradeMultiplier(state) *
-    prestigeMultiplier(state)
+    prestigeMultiplier(state) *
+    questClickMultiplier(state)
   )
 }
 

@@ -119,6 +119,10 @@ export function useGame() {
   )
   const rebirth = useCallback(() => dispatch({ type: 'REBIRTH' }), [])
   const dismissOfflineGain = useCallback(() => setOfflineGain(null), [])
+  const loadState = useCallback(
+    (next: GameState) => dispatch({ type: 'LOAD_STATE', state: next }),
+    [],
+  )
 
   const resetSave = useCallback(() => {
     window.localStorage.removeItem(SAVE_KEY)
@@ -137,5 +141,6 @@ export function useGame() {
     claimQuest,
     rebirth,
     resetSave,
+    loadState,
   }
 }

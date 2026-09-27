@@ -1,0 +1,99 @@
+@import "tailwindcss" source("../");
+
+@theme {
+  --color-matrix-green: #39ff6a;
+  --color-matrix-green-dim: #1f9d4a;
+  --color-matrix-black: #030405;
+  --color-matrix-dark: #0a0c0e;
+  --color-matrix-panel: #101317;
+  --color-matrix-border: #1f2a22;
+  --font-mono-terminal: "JetBrains Mono", "Fira Code", ui-monospace, Menlo,
+    Consolas, monospace;
+}
+
+body {
+  @apply m-0 bg-matrix-black text-white;
+  font-family: var(--font-mono-terminal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: var(--font-mono-terminal);
+}
+
+::selection {
+  background: rgba(57, 255, 106, 0.35);
+  color: #ffffff;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0c0e;
+}
+::-webkit-scrollbar-thumb {
+  background: #1f2a22;
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2b3b30;
+}
+
+.text-glow {
+  text-shadow:
+    0 0 6px rgba(57, 255, 106, 0.55),
+    0 0 18px rgba(57, 255, 106, 0.25);
+}
+
+.box-glow {
+  box-shadow:
+    0 0 0 1px rgba(57, 255, 106, 0.15),
+    0 0 24px rgba(57, 255, 106, 0.06);
+}
+
+@keyframes blink-cursor {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.cursor-blink {
+  animation: blink-cursor 1s step-end infinite;
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-48px);
+    opacity: 0;
+  }
+}
+.floating-text {
+  animation: float-up 0.9s ease-out forwards;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(57, 255, 106, 0.2),
+      0 0 20px rgba(57, 255, 106, 0.08);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(57, 255, 106, 0.4),
+      0 0 32px rgba(57, 255, 106, 0.18);
+  }
+}
+.pulse-glow {
+  animation: pulse-glow 2.4s ease-in-out infinite;
+}

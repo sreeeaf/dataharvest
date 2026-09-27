@@ -37,7 +37,7 @@ export default function Game() {
   } = useGame()
   const { user, logout } = useAuth()
   const { status: syncStatus, conflict, keepCloudSave, keepLocalSave } =
-    useCloudSync(user, state, loadState)
+    useCloudSync(user, state, loadState, ready)
 
   // These recompute a per-generator loop and several Math.pow calls; state.data
   // (the balance) changes on every 100ms tick but doesn't affect the result, so

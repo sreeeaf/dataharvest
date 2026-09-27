@@ -1,6 +1,18 @@
 import { QUESTS } from '../../lib/gameConfig'
 import { isQuestComplete, type GameState } from '../../lib/gameEngine'
-import { formatNumber } from '../../lib/format'
+import { formatBits } from '../../lib/format'
+
+function rewardLabel(reward: (typeof QUESTS)[number]['reward']): string {
+  if (reward.data) return `+${formatBits(reward.data)}`
+  if (reward.fragments) return `+${reward.fragments} frag.`
+  if (reward.permanentBonus?.production) {
+    return `+${Math.round(reward.permanentBonus.production * 100)}% prod.`
+  }
+  if (reward.permanentBonus?.click) {
+    return `+${Math.round(reward.permanentBonus.click * 100)}% clic`
+  }
+  return ''
+}
 
 export default function QuestPanel({
   state,
@@ -11,9 +23,6 @@ export default function QuestPanel({
 }) {
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-sm uppercase tracking-[0.25em] text-white/50">
-        Quêtes de départ
-      </h2>
       <div className="flex flex-col gap-2">
         {QUESTS.map((quest) => {
           const claimed = state.completedQuests.includes(quest.id)
@@ -33,9 +42,9 @@ export default function QuestPanel({
                 <div>
                   <div className="flex items-center gap-2">
                     <span
-                      className={`text-xs ${claimed ? 'text-matrix-green' : 'text-white/30'}`}
+                      className={`text-xs whitespace-nowrap ${claimed ? 'text-matrix-green' : 'text-white/30'}`}
                     >
-                      {claimed ? '[x]' : '[ ]'}
+                      {claimed ? '[x]' : '[ ]'}
                     </span>
                     <span className="font-semibold text-white text-sm">
                       {quest.title}
@@ -55,9 +64,7 @@ export default function QuestPanel({
                         : 'border-matrix-border text-white/30 cursor-not-allowed'
                     }`}
                   >
-                    {quest.reward.data
-                      ? `+${formatNumber(quest.reward.data)}`
-                      : `+${quest.reward.fragments} frag.`}
+                    {rewardLabel(quest.reward)}
                   </button>
                 )}
               </div>

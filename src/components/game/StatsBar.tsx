@@ -1,4 +1,4 @@
-import { formatNumber, formatRate } from '../../lib/format'
+import { formatBits, formatBitsRate, formatNumber } from '../../lib/format'
 
 export default function StatsBar({
   data,
@@ -17,10 +17,10 @@ export default function StatsBar({
         Données collectées
       </span>
       <span className="text-5xl sm:text-6xl font-bold text-matrix-green text-glow tabular-nums">
-        {formatNumber(data)}
+        {formatBits(data)}
       </span>
       <span className="text-sm text-matrix-green-dim tabular-nums">
-        {formatRate(productionPerSecond)}
+        {formatBitsRate(productionPerSecond)}
       </span>
       <div className="flex gap-4 mt-2 text-xs text-white/50">
         <span>

@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import MatrixRain from './MatrixRain'
 import HarvestButton from './game/HarvestButton'
 import StatsBar from './game/StatsBar'
@@ -6,7 +7,12 @@ import UpgradesPanel from './game/UpgradesPanel'
 import QuestPanel from './game/QuestPanel'
 import RebirthPanel from './game/RebirthPanel'
 import OfflineGainModal from './game/OfflineGainModal'
+import AccountBar from './game/AccountBar'
+import CloudSyncModal from './game/CloudSyncModal'
+import CollapsibleSection from './game/CollapsibleSection'
 import { useGame } from '../hooks/useGame'
+import { useAuth } from '../hooks/useAuth'
+import { useCloudSync } from '../hooks/useCloudSync'
 import {
   computeClickValue,
   computeProductionPerSecond,
@@ -27,7 +33,33 @@ export default function Game() {
     claimQuest,
     rebirth,
     resetSave,
+    loadState,
   } = useGame()
+  const { user, logout } = useAuth()
+  const { status: syncStatus, conflict, keepCloudSave, keepLocalSave } =
+    useCloudSync(user, state, loadState)
+
+  // These recompute a per-generator loop and several Math.pow calls; state.data
+  // (the balance) changes on every 100ms tick but doesn't affect the result, so
+  // depending on the narrower fields avoids redoing the work on every tick.
+  const prestige = useMemo(() => prestigeMultiplier(state), [state.fragments])
+  const production = useMemo(
+    () => computeProductionPerSecond(state),
+    [state.generators, state.globalUpgrades, state.fragments, state.completedQuests],
+  )
+  const clickValue = useMemo(
+    () => computeClickValue(state),
+    [
+      state.clickUpgradeLevel,
+      state.globalUpgrades,
+      state.fragments,
+      state.completedQuests,
+    ],
+  )
+  const multiplier = useMemo(
+    () => globalUpgradeMultiplier(state) * prestige,
+    [state.globalUpgrades, prestige],
+  )
 
   if (!ready) {
     return (
@@ -39,14 +71,27 @@ export default function Game() {
     )
   }
 
-  const production = computeProductionPerSecond(state)
-  const clickValue = computeClickValue(state)
-  const multiplier =
-    globalUpgradeMultiplier(state) * prestigeMultiplier(state)
-
   return (
     <div className="min-h-screen relative">
       <MatrixRain />
+
+      <header className="sticky top-0 z-20 border-b border-matrix-border bg-matrix-black/90 backdrop-blur-sm">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 py-2 sm:py-3 grid grid-cols-[2.25rem_1fr_2.25rem] sm:grid-cols-[1fr_auto_1fr] items-center gap-2">
+          <div />
+          <div className="flex flex-col items-center gap-0.5 sm:gap-1 text-center min-w-0">
+            <h1 className="text-lg sm:text-3xl font-bold text-matrix-green text-glow tracking-tight whitespace-nowrap">
+              DATA<span className="text-white">://</span>HARVEST
+              <span className="cursor-blink text-matrix-green">_</span>
+            </h1>
+            <p className="text-[9px] sm:text-xs text-white/30 tracking-wide sm:tracking-widest">
+              TERMINAL DE COLLECTE — REBOOTS: {state.rebirths}
+            </p>
+          </div>
+          <div className="flex justify-end">
+            <AccountBar user={user} status={syncStatus} onLogout={logout} />
+          </div>
+        </div>
+      </header>
 
       {offlineGain && (
         <OfflineGainModal
@@ -56,39 +101,37 @@ export default function Game() {
         />
       )}
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 py-6 flex flex-col gap-6">
-        <header className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-matrix-green text-glow tracking-tight">
-            DATA<span className="text-white">://</span>HARVEST
-            <span className="cursor-blink text-matrix-green">_</span>
-          </h1>
-          <p className="text-xs text-white/30 tracking-widest">
-            TERMINAL DE COLLECTE — REBOOTS: {state.rebirths}
-          </p>
-        </header>
+      {conflict && (
+        <CloudSyncModal
+          updatedAt={conflict.updatedAt}
+          onKeepCloud={keepCloudSave}
+          onKeepLocal={keepLocalSave}
+        />
+      )}
 
+      <div className="relative z-10 max-w-6xl mx-auto px-4 py-6 flex flex-col gap-6">
         <StatsBar
           data={state.data}
           productionPerSecond={production}
           fragments={state.fragments}
-          prestigeMultiplier={prestigeMultiplier(state)}
+          prestigeMultiplier={prestige}
         />
 
         <div className="flex justify-center">
           <HarvestButton clickValue={clickValue} onHarvest={harvestClick} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <section className="lg:col-span-1 rounded-xl border border-matrix-border bg-matrix-dark/60 p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          <CollapsibleSection title="Sources de récolte">
             <GeneratorList
               generators={state.generators}
               data={state.data}
               effectiveMultiplier={multiplier}
               onBuy={buyGenerator}
             />
-          </section>
+          </CollapsibleSection>
 
-          <section className="lg:col-span-1 rounded-xl border border-matrix-border bg-matrix-dark/60 p-4">
+          <CollapsibleSection title="Améliorations">
             <UpgradesPanel
               data={state.data}
               purchasedGlobalUpgrades={state.globalUpgrades}
@@ -96,21 +139,21 @@ export default function Game() {
               onBuyGlobalUpgrade={buyGlobalUpgrade}
               onBuyClickUpgrade={buyClickUpgrade}
             />
-          </section>
+          </CollapsibleSection>
 
-          <section className="lg:col-span-1 flex flex-col gap-6">
-            <div className="rounded-xl border border-matrix-border bg-matrix-dark/60 p-4">
+          <div className="flex flex-col gap-6">
+            <CollapsibleSection title="Quêtes">
               <QuestPanel state={state} onClaim={claimQuest} />
-            </div>
+            </CollapsibleSection>
             <RebirthPanel
               totalEarned={state.totalEarned}
               fragments={state.fragments}
               onRebirth={rebirth}
             />
-          </section>
+          </div>
         </div>
 
-        <footer className="text-center text-[10px] text-white/20 pb-4 flex flex-col items-center gap-1">
+        <footer className="text-center text-[10px] text-white/20 pb-24 sm:pb-4 flex flex-col items-center gap-1">
           <span>Progression sauvegardée automatiquement dans ce navigateur.</span>
           <button
             onClick={() => {

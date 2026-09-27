@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { fragmentsForRebirth } from '../../lib/gameEngine'
-import { formatNumber } from '../../lib/format'
+import { formatBits, formatNumber } from '../../lib/format'
 import { REBIRTH_MIN_TOTAL } from '../../lib/gameConfig'
 
 export default function RebirthPanel({
@@ -36,7 +36,7 @@ export default function RebirthPanel({
             />
           </div>
           <span className="text-[10px] text-white/30">
-            {formatNumber(totalEarned)} / {formatNumber(REBIRTH_MIN_TOTAL)}{' '}
+            {formatBits(totalEarned)} / {formatBits(REBIRTH_MIN_TOTAL)}{' '}
             données requises
           </span>
         </div>

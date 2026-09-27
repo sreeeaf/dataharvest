@@ -1,6 +1,6 @@
 import { GLOBAL_UPGRADES } from '../../lib/gameConfig'
 import { clickUpgradeCost } from '../../lib/gameEngine'
-import { formatNumber } from '../../lib/format'
+import { formatBits } from '../../lib/format'
 
 export default function UpgradesPanel({
   data,
@@ -20,10 +20,6 @@ export default function UpgradesPanel({
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-sm uppercase tracking-[0.25em] text-white/50">
-        Améliorations
-      </h2>
-
       <button
         onClick={onBuyClickUpgrade}
         disabled={!clickAffordable}
@@ -47,7 +43,7 @@ export default function UpgradesPanel({
               clickAffordable ? 'text-matrix-green' : 'text-white/40'
             }`}
           >
-            {formatNumber(nextClickCost)}
+            {formatBits(nextClickCost)}
           </span>
         </div>
       </button>
@@ -84,7 +80,7 @@ export default function UpgradesPanel({
                       : 'text-white/40'
                 }`}
               >
-                {owned ? 'ACTIF' : formatNumber(upgrade.cost)}
+                {owned ? 'ACTIF' : formatBits(upgrade.cost)}
               </span>
             </div>
           </button>

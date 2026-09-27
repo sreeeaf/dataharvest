@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { GENERATORS } from '../../lib/gameConfig'
-import { generatorCost } from '../../lib/gameEngine'
-import { formatInt, formatNumber, formatRate } from '../../lib/format'
+import { generatorCost, maxAffordableGenerators } from '../../lib/gameEngine'
+import { formatBits, formatBitsRate, formatInt } from '../../lib/format'
 
-const QUANTITIES = [1, 10, 25] as const
+const QUANTITIES = [1, 10, 25, 'max'] as const
 
 export default function GeneratorList({
   generators,
@@ -14,16 +14,13 @@ export default function GeneratorList({
   generators: Record<string, number>
   data: number
   effectiveMultiplier: number
-  onBuy: (id: string, quantity: number) => void
+  onBuy: (id: string, quantity: number | 'max') => void
 }) {
   const [quantity, setQuantity] = useState<(typeof QUANTITIES)[number]>(1)
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm uppercase tracking-[0.25em] text-white/50">
-          Sources de récolte
-        </h2>
+      <div className="flex justify-end">
         <div className="flex gap-1">
           {QUANTITIES.map((q) => (
             <button
@@ -35,7 +32,7 @@ export default function GeneratorList({
                   : 'border-matrix-border text-white/40 hover:text-white/70'
               }`}
             >
-              x{q}
+              {q === 'max' ? 'MAX' : `x${q}`}
             </button>
           ))}
         </div>
@@ -50,7 +47,10 @@ export default function GeneratorList({
             index === 0 || prevOwned > 0 || data >= def.baseCost * 0.1
           if (!unlocked) return null
 
-          const cost = generatorCost(def.id, owned, quantity)
+          const maxCount =
+            quantity === 'max' ? maxAffordableGenerators(def.id, owned, data) : 0
+          const buyCount = quantity === 'max' ? Math.max(1, maxCount) : quantity
+          const cost = generatorCost(def.id, owned, buyCount)
           const affordable = data >= cost
           const unitProduction = def.baseProduction * effectiveMultiplier
           const totalProduction = owned * unitProduction
@@ -81,7 +81,7 @@ export default function GeneratorList({
                   </p>
                   {owned > 0 && (
                     <p className="text-xs text-matrix-green/70 mt-0.5">
-                      {formatRate(totalProduction)} au total
+                      {formatBitsRate(totalProduction)} au total
                     </p>
                   )}
                 </div>
@@ -91,10 +91,15 @@ export default function GeneratorList({
                       affordable ? 'text-matrix-green' : 'text-white/40'
                     }`}
                   >
-                    {formatNumber(cost)}
+                    {quantity === 'max' && maxCount > 0 && (
+                      <span className="text-[10px] text-white/40 mr-1">
+                        x{formatInt(maxCount)}
+                      </span>
+                    )}
+                    {formatBits(cost)}
                   </div>
                   <div className="text-[10px] text-white/30">
-                    +{formatRate(unitProduction)}/u
+                    +{formatBitsRate(unitProduction)}/u
                   </div>
                 </div>
               </div>

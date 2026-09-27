@@ -1,4 +1,4 @@
-import { formatDuration, formatNumber } from '../../lib/format'
+import { formatBits, formatDuration } from '../../lib/format'
 
 export default function OfflineGainModal({
   amount,
@@ -20,7 +20,7 @@ export default function OfflineGainModal({
           {formatDuration(seconds)}).
         </p>
         <p className="text-3xl font-bold text-matrix-green text-glow mb-4">
-          +{formatNumber(amount)}
+          +{formatBits(amount)}
         </p>
         <button
           onClick={onDismiss}

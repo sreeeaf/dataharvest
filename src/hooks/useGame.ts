@@ -101,7 +101,7 @@ export function useGame() {
 
   const harvestClick = useCallback(() => dispatch({ type: 'HARVEST_CLICK' }), [])
   const buyGenerator = useCallback(
-    (id: string, quantity: number) =>
+    (id: string, quantity: number | 'max') =>
       dispatch({ type: 'BUY_GENERATOR', id, quantity }),
     [],
   )

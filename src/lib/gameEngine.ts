@@ -92,6 +92,22 @@ export function generatorCost(
   return Math.ceil(def.baseCost * growthPow * sum)
 }
 
+export function maxAffordableGenerators(
+  generatorId: string,
+  owned: number,
+  data: number,
+): number {
+  const def = GENERATORS.find((g) => g.id === generatorId)
+  if (!def || data <= 0) return 0
+  const firstCost = def.baseCost * Math.pow(COST_GROWTH, owned)
+  let n = Math.floor(
+    Math.log(1 + (data * (COST_GROWTH - 1)) / firstCost) / Math.log(COST_GROWTH),
+  )
+  // generatorCost rounds up, so the closed-form estimate can overshoot by one.
+  while (n > 0 && generatorCost(generatorId, owned, n) > data) n--
+  return Math.max(0, n)
+}
+
 export function clickUpgradeCost(level: number): number {
   return Math.ceil(
     CLICK_UPGRADE_BASE_COST * Math.pow(CLICK_UPGRADE_GROWTH, level),
@@ -180,6 +196,28 @@ export function isQuestComplete(state: GameState, questId: string): boolean {
       return state.rebirths >= 1
     case 'q9':
       return state.totalEarned >= 100_000
+    case 'q10':
+      return distinctGeneratorTypesOwned(state) >= GENERATORS.length
+    case 'q11':
+      return Object.values(state.generators).some((n) => n >= 50)
+    case 'q12':
+      return totalGeneratorsOwned(state) >= 100
+    case 'q13':
+      return state.rebirths >= 3
+    case 'q14':
+      return state.fragments >= 25
+    case 'q15':
+      return state.lifetimeEarned >= 10_000_000
+    case 'q16':
+      return state.clickUpgradeLevel >= 10
+    case 'q17':
+      return state.globalUpgrades.length >= GLOBAL_UPGRADES.length
+    case 'q18':
+      return state.rebirths >= 10
+    case 'q19':
+      return state.lifetimeEarned >= 1_000_000_000
+    case 'q20':
+      return Object.values(state.generators).some((n) => n >= 500)
     default:
       return false
   }
@@ -188,7 +226,7 @@ export function isQuestComplete(state: GameState, questId: string): boolean {
 type Action =
   | { type: 'TICK'; dtSeconds: number }
   | { type: 'HARVEST_CLICK' }
-  | { type: 'BUY_GENERATOR'; id: string; quantity: number }
+  | { type: 'BUY_GENERATOR'; id: string; quantity: number | 'max' }
   | { type: 'BUY_GLOBAL_UPGRADE'; id: string }
   | { type: 'BUY_CLICK_UPGRADE' }
   | { type: 'CLAIM_QUEST'; id: string }
@@ -225,15 +263,19 @@ export function gameReducer(state: GameState, action: Action): GameState {
 
     case 'BUY_GENERATOR': {
       const owned = state.generators[action.id] ?? 0
-      const cost = generatorCost(action.id, owned, action.quantity)
-      if (!Number.isFinite(cost) || state.data < cost || action.quantity <= 0)
-        return state
+      const quantity =
+        action.quantity === 'max'
+          ? maxAffordableGenerators(action.id, owned, state.data)
+          : action.quantity
+      if (quantity <= 0) return state
+      const cost = generatorCost(action.id, owned, quantity)
+      if (!Number.isFinite(cost) || state.data < cost) return state
       return {
         ...state,
         data: state.data - cost,
         generators: {
           ...state.generators,
-          [action.id]: owned + action.quantity,
+          [action.id]: owned + quantity,
         },
       }
     }

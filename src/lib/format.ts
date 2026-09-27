@@ -16,16 +16,28 @@ const SUFFIXES = [
   'Td',
 ]
 
-export function formatNumber(value: number, decimals = 2): string {
-  if (!Number.isFinite(value)) return '0'
+const BIT_SUFFIXES = ['bit', 'Kb', 'Mb', 'Gb', 'Tb', 'Pb', 'Eb', 'Zb', 'Yb', 'Rb', 'Qb']
+
+function formatWithSuffixes(
+  value: number,
+  decimals: number,
+  suffixes: Array<string>,
+  baseUnit: string,
+): string {
+  if (!Number.isFinite(value)) return `0${baseUnit}`
   const sign = value < 0 ? '-' : ''
   const abs = Math.abs(value)
   if (abs < 1000) {
-    return sign + (Number.isInteger(abs) ? abs.toString() : abs.toFixed(decimals))
+    const rounded = Number.isInteger(abs) ? abs.toString() : abs.toFixed(decimals)
+    return `${sign}${rounded}${baseUnit}`
   }
-  const tier = Math.min(Math.floor(Math.log10(abs) / 3), SUFFIXES.length - 1)
+  const tier = Math.min(Math.floor(Math.log10(abs) / 3), suffixes.length - 1)
   const scaled = abs / Math.pow(1000, tier)
-  return `${sign}${scaled.toFixed(decimals)}${SUFFIXES[tier]}`
+  return `${sign}${scaled.toFixed(decimals)}${suffixes[tier]}`
+}
+
+export function formatNumber(value: number, decimals = 2): string {
+  return formatWithSuffixes(value, decimals, SUFFIXES, '')
 }
 
 export function formatInt(value: number): string {
@@ -34,6 +46,15 @@ export function formatInt(value: number): string {
 
 export function formatRate(value: number): string {
   return `${formatNumber(value, 2)}/s`
+}
+
+/** Formats a Données amount using the game's bit-themed units: 1bit, 1Kb, 1Mb, 1Gb… */
+export function formatBits(value: number, decimals = 2): string {
+  return formatWithSuffixes(value, decimals, BIT_SUFFIXES, 'bit')
+}
+
+export function formatBitsRate(value: number, decimals = 2): string {
+  return `${formatBits(value, decimals)}/s`
 }
 
 export function formatDuration(totalSeconds: number): string {

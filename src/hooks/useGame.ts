@@ -23,6 +23,12 @@ function loadFromStorage(): GameState | null {
   }
 }
 
+// Timestamp of the last local save, used by cloud sync to decide which save is
+// the most recent without asking the player again.
+export function getLocalSaveTimestamp(): number {
+  return loadFromStorage()?.lastSave ?? 0
+}
+
 function saveToStorage(state: GameState) {
   if (typeof window === 'undefined') return
   try {
